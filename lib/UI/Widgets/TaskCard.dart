@@ -51,7 +51,7 @@ class TaskCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text("$title",style: const TextStyle(fontWeight: FontWeight.w700,fontSize: 17,color: Color.fromARGB(255, 77,166,36)),),
+              Text("$title",style: const TextStyle(fontWeight: FontWeight.w700,fontSize: 17,color: Color.fromRGBO(1, 113, 75, 1)),),
             ],
           ),
           const SizedBox(height: 5,),
@@ -71,7 +71,7 @@ class TaskCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   color: const Color.fromRGBO(1, 113, 75, 0.14),
                 ),
-                child: Text("$etat",style: const TextStyle(fontWeight: FontWeight.w600,fontSize: 12,color: Color.fromARGB(255, 77,166,36)),),
+                child: Text("$etat",style: const TextStyle(fontWeight: FontWeight.w600,fontSize: 12,color: Color.fromRGBO(1, 113, 75, 1)),),
               ):Container(),
             ],
           ),

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 import '../Widgets/CostumNavBar.dart';
 
-class TaskScreen extends StatelessWidget {
+class TaskScreen extends StatefulWidget {
   const TaskScreen(
       {Key? key,
-      required this.title,
-      required this.date,
-      required this.startTime,
-      required this.estimatedEndTime,
-      required this.adresseDepot,
-      required this.adressePoubelle,
-      required this.routeData})
+        required this.title,
+        required this.date,
+        required this.startTime,
+        required this.estimatedEndTime,
+        required this.adresseDepot,
+        required this.adressePoubelle,
+        required this.routeData})
       : super(key: key);
   final String title;
   final String date;
@@ -22,11 +25,103 @@ class TaskScreen extends StatelessWidget {
   final Map<String, dynamic> routeData;
 
   @override
+  _TaskScreenState createState() => _TaskScreenState();
+}
+
+class _TaskScreenState extends State<TaskScreen> {
+  late GoogleMapController mapController;
+  LatLng? depotCoordinate;
+  List<LatLng> poubelleCoordinates = [];
+  List<LatLng> polylineCoordinates = [];
+  Set<Polyline> polylines = {};
+  bool isLoading = true;
+  String googleAPiKey = "API_";
+
+  @override
+  void initState() {
+    super.initState();
+    _getCoordinates();
+  }
+
+  Future<void> _getCoordinates() async {
+    try {
+      // Convertir l'adresse de dépôt en coordonnées
+      List<Location> depotLocations = await locationFromAddress(widget.adresseDepot);
+      if (depotLocations.isNotEmpty) {
+        depotCoordinate = LatLng(depotLocations.first.latitude, depotLocations.first.longitude);
+      }
+
+      // Convertir les adresses des poubelles en coordonnées
+      for (String adresse in widget.adressePoubelle) {
+        List<Location> locations = await locationFromAddress(adresse);
+        if (locations.isNotEmpty) {
+          poubelleCoordinates.add(LatLng(locations.first.latitude, locations.first.longitude));
+        }
+      }
+
+      // Tracez la route
+      await _createPolylines();
+
+      setState(() {
+        isLoading = false; // Marquer le chargement comme terminé
+      });
+    } catch (e) {
+      print('Error occurred while getting coordinates: $e');
+      setState(() {
+        isLoading = false; // Marquer le chargement comme terminé même en cas d'erreur
+      });
+    }
+  }
+
+  Future<void> _createPolylines() async {
+    if (depotCoordinate != null && poubelleCoordinates.isNotEmpty) {
+      // Ajouter le trajet de dépôt à la première poubelle
+      await _addPolyline(depotCoordinate!, poubelleCoordinates.first);
+
+      // Ajouter les trajets entre les poubelles
+      for (int i = 0; i < poubelleCoordinates.length - 1; i++) {
+        await _addPolyline(poubelleCoordinates[i], poubelleCoordinates[i + 1]);
+      }
+
+      // Ajouter le trajet de la dernière poubelle au dépôt
+      await _addPolyline(poubelleCoordinates.last, depotCoordinate!);
+    }
+  }
+
+  Future<void> _addPolyline(LatLng from, LatLng to) async {
+    PolylinePoints polylinePoints = PolylinePoints();
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      googleAPiKey,
+      PointLatLng(from.latitude, from.longitude),
+      PointLatLng(to.latitude, to.longitude),
+    );
+
+    if (result.points.isNotEmpty) {
+      for (var point in result.points) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      }
+
+      setState(() {
+        polylines.add(
+          Polyline(
+            polylineId: PolylineId(from.toString() + to.toString()),
+            width: 5,
+            color: Colors.blue,
+            points: polylineCoordinates,
+          ),
+        );
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
+    LatLng center = depotCoordinate ?? const LatLng(36.737232, 3.086472);
+
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+        child : SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -44,7 +139,7 @@ class TaskScreen extends StatelessWidget {
                       height: 5,
                     ),
                     const Text(
-                      "Task detail",
+                      "Task details",
                       style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
@@ -73,7 +168,7 @@ class TaskScreen extends StatelessWidget {
                         Container(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            title,
+                            widget.title,
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: Color.fromRGBO(14, 14, 14, 1),
@@ -130,21 +225,21 @@ class TaskScreen extends StatelessWidget {
                                         fontSize: 12),
                                   ),
                                   Text(
-                                    "$date",
+                                    widget.date,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color.fromRGBO(14, 14, 14, 1),
                                         fontSize: 12),
                                   ),
                                   Text(
-                                    "$startTime",
+                                    widget.startTime,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color.fromRGBO(1, 113, 75, 1),
                                         fontSize: 12),
                                   ),
                                   Text(
-                                    "$estimatedEndTime",
+                                    widget.estimatedEndTime,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color.fromRGBO(1, 113, 75, 1),
@@ -168,12 +263,12 @@ class TaskScreen extends StatelessWidget {
                             ),
                             Expanded(
                                 child: Text(
-                              "Votre mission d'aujourd'hui c'est le ramassage dans cette adresse ",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Color.fromRGBO(14, 14, 14, 1),
-                                  fontSize: 12),
-                            )),
+                                  "Votre mission d'aujourd'hui c'est le ramassage dans cette adresse ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Color.fromRGBO(14, 14, 14, 1),
+                                      fontSize: 12),
+                                )),
                           ],
                         ),
                         Row(
@@ -181,18 +276,15 @@ class TaskScreen extends StatelessWidget {
                           children: [
                             const Text(
                               "0%",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 14),
+                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                             ),
                             Slider(
                               value: 0,
                               min: 0,
                               max: 100,
                               divisions: 100,
-                              activeColor:
-                                  const Color.fromARGB(255, 77, 166, 36),
-                              inactiveColor:
-                                  const Color.fromARGB(130, 51, 51, 51),
+                              activeColor: const Color.fromRGBO(1, 113, 75, 1),
+                              inactiveColor: const Color.fromARGB(130, 51, 51, 51),
                               onChanged: (double value) {},
                             ),
                           ],
@@ -203,7 +295,7 @@ class TaskScreen extends StatelessWidget {
                             "Adresse de Dépots",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 77, 166, 36),
+                                color: Color.fromRGBO(1, 113, 75, 1),
                                 fontSize: 17),
                           ),
                         ),
@@ -211,7 +303,7 @@ class TaskScreen extends StatelessWidget {
                           margin: const EdgeInsets.only(bottom: 10),
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "- $adresseDepot",
+                            "- ${widget.adresseDepot}",
                             style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: Color.fromRGBO(14, 14, 14, 1),
@@ -224,17 +316,17 @@ class TaskScreen extends StatelessWidget {
                             "Adresses des Poubelles",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 77, 166, 36),
+                                color: Color.fromRGBO(1, 113, 75, 1),
                                 fontSize: 17),
                           ),
                         ),
                         ...List.generate(
-                          adressePoubelle.length,
-                          (index) => Container(
+                          widget.adressePoubelle.length,
+                              (index) => Container(
                             alignment: Alignment.centerLeft,
                             margin: const EdgeInsets.only(top: 3),
                             child: Text(
-                              "${index + 1} - ${adressePoubelle[index]}",
+                              "${index + 1} - ${widget.adressePoubelle[index]}",
                               style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Color.fromRGBO(14, 14, 14, 1),
@@ -242,23 +334,57 @@ class TaskScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 10),
-                          child: Image.asset("lib/UI/Assets/Images/map.png"),
+                        const SizedBox(
+                          height: 15,
                         ),
                         SizedBox(
+                          height: 300,
+                          child: GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: center,
+                              zoom: 10,
+                            ),
+                            markers: {
+                              if (depotCoordinate != null)
+                                Marker(
+                                  markerId: const MarkerId('depot'),
+                                  position: depotCoordinate!,
+                                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                                  infoWindow: InfoWindow(
+                                    title: 'Depot',
+                                    snippet: widget.adresseDepot,
+                                  ),
+                                ),
+                              ...poubelleCoordinates.map((coordinate) =>
+                                  Marker(
+                                    markerId: MarkerId(coordinate.toString()),
+                                    position: coordinate,
+                                    infoWindow: InfoWindow(
+                                      title: 'Poubelle',
+                                      snippet: widget.adressePoubelle[poubelleCoordinates.indexOf(coordinate)],
+                                    ),
+                                  ),
+                              ),
+                            }.toSet(),
+                            polylines: polylines,
+                            onMapCreated: (GoogleMapController controller) {
+                              mapController = controller;
+                            },
+                          ),
+                        ),
+                        const SizedBox(
                           height: 20,
                         ),
                         Center(
                           child: SizedBox(
                             width: 230,
                             child: MaterialButton(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              color: Color.fromRGBO(1, 113, 75, 1),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              color: const Color.fromRGBO(1, 113, 75, 1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25.0),
                               ),
-                              child: Text(
+                              child: const Text(
                                 'Mark as Done',
                                 style: TextStyle(
                                     letterSpacing: 0.8,
@@ -284,7 +410,7 @@ class TaskScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: CostumNavBar(index: 0, routeData: routeData),
+      bottomNavigationBar: CostumNavBar(index: 0, routeData: widget.routeData),
     );
   }
 }

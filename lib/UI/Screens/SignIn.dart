@@ -22,17 +22,22 @@ class _SignIn extends State<SignIn> {
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
   final List<String> addresses = [
-    '2+Rue+Alexis+de+Tocqueville,+78000+Versailles',
-    'UVSQ+-+UFR+des+Sciences+-+Universite+Paris-Saclay,+45+Av.+des+3tats+Unis,+78000+Versailles',
-    '67+Av.+de+Saint-Cloud,+78000+Versailles',
-    'Residence+Ecla+Paris+Massy-Palaiseau',
-    'Chateau+de+Versailles',
-    '21+Pl.+du+Grand+Ouest,+91300+Massy',
+    '1+Avenue+du+Docteur+Saadane,+16000+Alger',
+    'Place+des+Martyrs,+16000+Alger',
+    'Parc+de+la+Liberté,+16000+Alger',
+    'Université+des+Sciences+et+de+la+Technologie+Houari-Boumediene,+BP+32+El+Alia,+16111+Alger',
+    'Jardin+d\'Essai+du+Hamma,+Rue+Mohamed+Belouizdad,+16015+Alger',
+    'Basilique+Notre-Dame+d\'Afrique,+Rue+Belkacem+Bettoua,+16000+Alger',
+    'Aéroport+Houari+Boumediene,+Dar+El+Beida,+16033+Alger',
+    'Rue+Didouche+Mourad,+16000+Alger',
+    'Musée+National+des+Beaux-Arts+d\'Alger,+Rue+Mohamed+Belouizdad,+16015+Alger',
+    'Hôtel+El+Aurassi,+2+Boulevard+Frantz+Fanon,+16000+Alger'
   ];
+
   Future<Map<String, dynamic>> fetchRouteData() async {
     String addressesString = addresses.join(",");
     print(addressesString);
-    final url = "https://api-pfe-1.onrender.com/api/calculate_distance/?addresses=$addressesString&num_vehicles=4&vehicle_id=1";
+    final url = "https://api-pfe-1.onrender.com/api/calculate_distance/?addresses=$addressesString&num_vehicles=4&vehicle_id=0";
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -53,7 +58,6 @@ class _SignIn extends State<SignIn> {
     // Ajoutez ici votre logique de connexion
     final routeData = await fetchRouteData();
     RouteDataProvider().setRouteData(routeData); // Store the route data globally
-
 
     Navigator.pushReplacement(
       context,
@@ -189,11 +193,11 @@ class _SignIn extends State<SignIn> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                                 side: const BorderSide(
-                                  color: Color.fromARGB(255, 77, 166, 36),
+                                  color: Color.fromRGBO(1, 113, 75, 1),
                                 ),
                               ),
                               activeColor:
-                                  const Color.fromARGB(255, 77, 166, 36),
+                                  const Color.fromRGBO(1, 113, 75, 1),
                             ),
                           ),
                           const Text(
@@ -221,7 +225,7 @@ class _SignIn extends State<SignIn> {
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             fontFamily: 'Poppins',
-                            color: Color.fromARGB(255, 77, 166, 36),
+                            color: Color.fromRGBO(1, 113, 75, 1),
                           ),
                         ),
                       )
@@ -235,7 +239,7 @@ class _SignIn extends State<SignIn> {
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+                          backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25.0),
                           ),

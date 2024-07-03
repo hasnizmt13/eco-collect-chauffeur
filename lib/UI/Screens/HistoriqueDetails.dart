@@ -190,7 +190,7 @@ class HistoriqueDetails extends StatelessWidget {
                               max: 100,
                               divisions: 100,
                               activeColor:
-                                  const Color.fromARGB(255, 77, 166, 36),
+                                  const Color.fromRGBO(1, 113, 75, 1),
                               inactiveColor:
                                   const Color.fromARGB(130, 51, 51, 51),
                               onChanged: (double value) {},
@@ -203,7 +203,7 @@ class HistoriqueDetails extends StatelessWidget {
                             "Adresse de Dépots",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 77, 166, 36),
+                                color: Color.fromRGBO(1, 113, 75, 1),
                                 fontSize: 17),
                           ),
                         ),
@@ -224,7 +224,7 @@ class HistoriqueDetails extends StatelessWidget {
                             "Adresses des Poubelles",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 77, 166, 36),
+                                color: Color.fromRGBO(1, 113, 75, 1),
                                 fontSize: 17),
                           ),
                         ),

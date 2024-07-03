@@ -30,7 +30,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^6.0.12  # Add the latest version of url_launcher
 
 
 
@@ -48,6 +47,8 @@ dependencies:
   flutter_polyline_points: ^2.0.0
   google_directions_api: ^0.10.0
   google_maps_flutter_web: ^0.5.4+1
+  url_launcher: ^6.0.3
+
 
 
 

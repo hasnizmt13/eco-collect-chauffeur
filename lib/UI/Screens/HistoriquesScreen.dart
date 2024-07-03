@@ -76,7 +76,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
       body: isloading
           ? const Center(
               child: CircularProgressIndicator(
-              color: Color.fromARGB(255, 77, 166, 36),
+              color: Color.fromRGBO(1, 113, 75, 1),
             ))
           : SingleChildScrollView(
               child: Column(
@@ -152,7 +152,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                           icon: const Icon(
                             Icons.filter_list_rounded,
                             size: 30,
-                            color: Color.fromARGB(255, 77, 166, 36),
+                            color: Color.fromRGBO(1, 113, 75, 1),
                           ),
                         ),
                       ],

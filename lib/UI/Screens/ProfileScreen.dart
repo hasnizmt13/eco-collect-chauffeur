@@ -218,7 +218,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                         width: 300,
                         child: MaterialButton(
                           onPressed:(){},
-                          color: const Color.fromARGB(255, 77, 166, 36),
+                          color: const Color.fromRGBO(1, 113, 75, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(23.0),
                           ),

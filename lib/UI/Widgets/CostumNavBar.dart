@@ -72,25 +72,25 @@ class CostumNavBar extends StatelessWidget {
             BottomNavigationBarItem(
               icon:
                   Icon(index == 0 ? Icons.home : Icons.home_outlined, size: 27),
-              backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+              backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
               label: "",
             ),
             BottomNavigationBarItem(
               icon: Icon(index == 1 ? Icons.map : Icons.map_outlined, size: 27),
-              backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+              backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
               label: "",
             ),
             BottomNavigationBarItem(
               icon: Icon(index == 2 ? Icons.archive : Icons.archive_outlined,
                   size: 27),
-              backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+              backgroundColor: Color.fromRGBO(1, 113, 75, 1),
               label: "",
             ),
             BottomNavigationBarItem(
               icon: Icon(
                   index == 3 ? Icons.person : Icons.perm_identity_outlined,
                   size: 27),
-              backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+              backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
               label: "",
             ),
           ],
