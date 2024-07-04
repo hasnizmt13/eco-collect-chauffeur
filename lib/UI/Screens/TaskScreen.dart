@@ -8,13 +8,13 @@ import '../Widgets/CostumNavBar.dart';
 class TaskScreen extends StatefulWidget {
   const TaskScreen(
       {Key? key,
-        required this.title,
-        required this.date,
-        required this.startTime,
-        required this.estimatedEndTime,
-        required this.adresseDepot,
-        required this.adressePoubelle,
-        required this.routeData})
+      required this.title,
+      required this.date,
+      required this.startTime,
+      required this.estimatedEndTime,
+      required this.adresseDepot,
+      required this.adressePoubelle,
+      required this.routeData})
       : super(key: key);
   final String title;
   final String date;
@@ -35,7 +35,7 @@ class _TaskScreenState extends State<TaskScreen> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   bool isLoading = true;
-  String googleAPiKey = "API_";
+  String googleAPiKey = "";
 
   @override
   void initState() {
@@ -46,16 +46,19 @@ class _TaskScreenState extends State<TaskScreen> {
   Future<void> _getCoordinates() async {
     try {
       // Convertir l'adresse de dépôt en coordonnées
-      List<Location> depotLocations = await locationFromAddress(widget.adresseDepot);
+      List<Location> depotLocations =
+          await locationFromAddress(widget.adresseDepot);
       if (depotLocations.isNotEmpty) {
-        depotCoordinate = LatLng(depotLocations.first.latitude, depotLocations.first.longitude);
+        depotCoordinate = LatLng(
+            depotLocations.first.latitude, depotLocations.first.longitude);
       }
 
       // Convertir les adresses des poubelles en coordonnées
       for (String adresse in widget.adressePoubelle) {
         List<Location> locations = await locationFromAddress(adresse);
         if (locations.isNotEmpty) {
-          poubelleCoordinates.add(LatLng(locations.first.latitude, locations.first.longitude));
+          poubelleCoordinates
+              .add(LatLng(locations.first.latitude, locations.first.longitude));
         }
       }
 
@@ -68,7 +71,8 @@ class _TaskScreenState extends State<TaskScreen> {
     } catch (e) {
       print('Error occurred while getting coordinates: $e');
       setState(() {
-        isLoading = false; // Marquer le chargement comme terminé même en cas d'erreur
+        isLoading =
+            false; // Marquer le chargement comme terminé même en cas d'erreur
       });
     }
   }
@@ -121,7 +125,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child : SingleChildScrollView(
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -262,13 +266,14 @@ class _TaskScreenState extends State<TaskScreen> {
                               width: 8,
                             ),
                             Expanded(
-                                child: Text(
-                                  "Votre mission d'aujourd'hui c'est le ramassage dans cette adresse ",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: Color.fromRGBO(14, 14, 14, 1),
-                                      fontSize: 12),
-                                )),
+                              child: Text(
+                                "Votre mission d'aujourd'hui c'est le ramassage dans cette adresse ",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromRGBO(14, 14, 14, 1),
+                                    fontSize: 12),
+                              ),
+                            ),
                           ],
                         ),
                         Row(
@@ -276,7 +281,8 @@ class _TaskScreenState extends State<TaskScreen> {
                           children: [
                             const Text(
                               "0%",
-                              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500, fontSize: 14),
                             ),
                             Slider(
                               value: 0,
@@ -284,7 +290,8 @@ class _TaskScreenState extends State<TaskScreen> {
                               max: 100,
                               divisions: 100,
                               activeColor: const Color.fromRGBO(1, 113, 75, 1),
-                              inactiveColor: const Color.fromARGB(130, 51, 51, 51),
+                              inactiveColor:
+                                  const Color.fromARGB(130, 51, 51, 51),
                               onChanged: (double value) {},
                             ),
                           ],
@@ -322,7 +329,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         ),
                         ...List.generate(
                           widget.adressePoubelle.length,
-                              (index) => Container(
+                          (index) => Container(
                             alignment: Alignment.centerLeft,
                             margin: const EdgeInsets.only(top: 3),
                             child: Text(
@@ -349,21 +356,24 @@ class _TaskScreenState extends State<TaskScreen> {
                                 Marker(
                                   markerId: const MarkerId('depot'),
                                   position: depotCoordinate!,
-                                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                                      BitmapDescriptor.hueBlue),
                                   infoWindow: InfoWindow(
                                     title: 'Depot',
                                     snippet: widget.adresseDepot,
                                   ),
                                 ),
-                              ...poubelleCoordinates.map((coordinate) =>
-                                  Marker(
-                                    markerId: MarkerId(coordinate.toString()),
-                                    position: coordinate,
-                                    infoWindow: InfoWindow(
-                                      title: 'Poubelle',
-                                      snippet: widget.adressePoubelle[poubelleCoordinates.indexOf(coordinate)],
-                                    ),
+                              ...poubelleCoordinates.map(
+                                (coordinate) => Marker(
+                                  markerId: MarkerId(coordinate.toString()),
+                                  position: coordinate,
+                                  infoWindow: InfoWindow(
+                                    title: 'Poubelle',
+                                    snippet: widget.adressePoubelle[
+                                        poubelleCoordinates
+                                            .indexOf(coordinate)],
                                   ),
+                                ),
                               ),
                             }.toSet(),
                             polylines: polylines,

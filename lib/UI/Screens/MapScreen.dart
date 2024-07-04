@@ -24,7 +24,7 @@ class _MapScreenState extends State<MapScreen> {
   Map<PolylineId, Polyline> polylines = {};
   List<LatLng> polylineCoordinates = [];
   PolylinePoints polylinePoints = PolylinePoints();
-  String googleAPiKey = "API_"; // Replace with your API key
+  String googleAPiKey = ""; // Replace with your API key
   late String depotAddress;
   late List<String> poubelleAddresses;
 
@@ -154,7 +154,14 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   String formatAddress(String address) {
-    return address.replaceAll(' ', '+');
+    return address
+        .replaceAll(' ', '+')
+        .replaceAll('\'', '%27')
+        .replaceAll('é', '%C3%A9')
+        .replaceAll('à', '%C3%A0')
+        .replaceAll('è', '%C3%A8')
+        .replaceAll('ê', '%C3%AA')
+        .replaceAll('ç', '%C3%A7');
   }
 
   void _launchGoogleMapsNavigation() async {
@@ -163,8 +170,13 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    String waypoints = poubelleAddresses.join('|');
-    String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&origin=$depotAddress&destination=${poubelleAddresses.last}&waypoints=$waypoints&travelmode=driving';
+    String origin = formatAddress(depotAddress);
+    String destination = formatAddress(poubelleAddresses.last);
+    String waypoints = poubelleAddresses
+        .map((address) => formatAddress(address))
+        .join('|');
+
+    String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&waypoints=$waypoints&travelmode=driving';
 
     if (await canLaunch(googleMapsUrl)) {
       await launch(googleMapsUrl);
@@ -172,28 +184,42 @@ class _MapScreenState extends State<MapScreen> {
       throw 'Could not launch $googleMapsUrl';
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: GoogleMap(
-                mapType: MapType.normal,
-                onMapCreated: _onMapCreated,
-                markers: Set<Marker>.of(markers.values),
-                polylines: Set<Polyline>.of(polylines.values),
-                initialCameraPosition: CameraPosition(
-                  target: _center,
-                  zoom: 14.0,
-                ),
+            GoogleMap(
+              mapType: MapType.normal,
+              onMapCreated: _onMapCreated,
+              markers: Set<Marker>.of(markers.values),
+              polylines: Set<Polyline>.of(polylines.values),
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 14.0,
               ),
             ),
-            ElevatedButton(
-              onPressed: _launchGoogleMapsNavigation,
-              child: const Text('Start Navigation in Google Maps'),
+            Positioned(
+              top: 20,
+              left: 70,
+              right:70,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                ),
+                onPressed: _launchGoogleMapsNavigation,
+
+                child: const Text('Start Navigation',style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  color: Colors.white,
+                ),),
+              ),
             ),
           ],
         ),

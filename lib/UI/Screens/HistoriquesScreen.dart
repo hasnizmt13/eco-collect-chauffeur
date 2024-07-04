@@ -23,33 +23,30 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
     listOfMap = [
       {
         "idDistributeur": "001",
-        "adresse": "123 Rue de la Liberté",
+        "adresse": "Rue Didouche Mourad, Alger Centre",
         "dateDebut": "2024-06-27T14:20",
         "dateFin": "2024-06-26T12:15",
         "title": "Ramassage poubelle",
         "etat": "Done",
-        "poubelleAdresses": ["Adresse Poubelle 1", "Adresse Poubelle 2"]
-
+        "poubelleAdresses": ["Rue Hassiba Ben Bouali, Alger Centre", "Rue Larbi Ben M'hidi, Alger Centre"]
       },
       {
         "idDistributeur": "002",
-        "adresse": "456 Avenue de l'Indépendance",
+        "adresse": "Avenue Pasteur, Alger Centre",
         "dateDebut": "2024-06-26T11:15",
         "dateFin": "2024-06-26T12:15",
         "title": "Ramassage poubelle",
         "etat": "Done",
-        "poubelleAdresses": ["Adresse Poubelle 3", "Adresse Poubelle 4"]
-
+        "poubelleAdresses": ["Rue Emir Abdelkader, Alger Centre", "Rue Sidi Yahia, Hydra"]
       },
       {
         "idDistributeur": "003",
-        "adresse": "789 Boulevard de la Révolution",
+        "adresse": "Boulevard Mohamed V, Alger Centre",
         "dateDebut": "2024-06-25T09:45",
         "dateFin": "2024-06-26T12:15",
         "title": "Ramassage poubelle",
         "etat": "Done",
-        "poubelleAdresses": ["Adresse Poubelle 1", "Adresse Poubelle 2","Adresse Poubelle 55", "Adresse Poubelle 67"]
-
+        "poubelleAdresses": ["Rue Didouche Mourad, Alger Centre", "Avenue Khelifa Boukhalfa, Alger Centre", "Rue des Frères Amrani, El Harrach", "Rue de Tripoli, Hussein Dey"]
       }
     ];
 
@@ -62,7 +59,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
     List<Widget> _listOfTasksWidgets = List.generate(
         listOfMap.length,
         (index) => TaskCard(
-            adresseDepot: "ID${listOfMap[index]["idDistributeur"]} ${listOfMap[index]["adresse"]}",
+            adresseDepot: "${listOfMap[index]["adresse"]}",
             adressePoubelle:listOfMap[index]["poubelleAdresses"] ,
             date: listOfMap[index]["dateDebut"].substring(0, 10),
             title: listOfMap[index]["title"],
@@ -76,7 +73,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
       body: isloading
           ? const Center(
               child: CircularProgressIndicator(
-              color: Color.fromRGBO(1, 113, 75, 1),
+              color: Color.fromARGB(255, 77, 166, 36),
             ))
           : SingleChildScrollView(
               child: Column(
@@ -152,7 +149,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                           icon: const Icon(
                             Icons.filter_list_rounded,
                             size: 30,
-                            color: Color.fromRGBO(1, 113, 75, 1),
+                            color: Color.fromARGB(255, 77, 166, 36),
                           ),
                         ),
                       ],

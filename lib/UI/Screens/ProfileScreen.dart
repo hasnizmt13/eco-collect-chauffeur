@@ -49,8 +49,8 @@ class _ProfileScreen extends State<ProfileScreen> {
             bottom: Radius.circular(30),
           ),
         ),
-        toolbarHeight: 235,
-        backgroundColor: const Color.fromARGB(255, 77, 166, 36),
+        toolbarHeight: 245,
+        backgroundColor: const  Color.fromRGBO(1, 113, 75, 1),
         flexibleSpace: SafeArea(
             child: Column(
           children: [
