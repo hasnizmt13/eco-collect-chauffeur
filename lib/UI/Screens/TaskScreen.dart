@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-
 import '../Widgets/CostumNavBar.dart';
+import '../Widgets/AdresseCard.dart';
 
 class TaskScreen extends StatefulWidget {
-  const TaskScreen(
-      {Key? key,
-      required this.title,
-      required this.date,
-      required this.startTime,
-      required this.estimatedEndTime,
-      required this.adresseDepot,
-      required this.adressePoubelle,
-      required this.routeData})
-      : super(key: key);
+  const TaskScreen({
+    Key? key,
+    required this.title,
+    required this.date,
+    required this.startTime,
+    required this.estimatedEndTime,
+    required this.adresseDepot,
+    required this.adressePoubelle,
+    required this.routeData,
+    required this.userData,
+  }) : super(key: key);
+
   final String title;
   final String date;
   final String startTime;
@@ -23,6 +25,7 @@ class TaskScreen extends StatefulWidget {
   final String adresseDepot;
   final List<String> adressePoubelle;
   final Map<String, dynamic> routeData;
+  final Map<String, dynamic> userData;
 
   @override
   _TaskScreenState createState() => _TaskScreenState();
@@ -35,7 +38,7 @@ class _TaskScreenState extends State<TaskScreen> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   bool isLoading = true;
-  String googleAPiKey = "";
+  String googleAPiKey = "AIzaSyD9tpt5CiBIxms61wQ_LR8o0IqDhmoI8Ks";
 
   @override
   void initState() {
@@ -45,7 +48,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> _getCoordinates() async {
     try {
-      // Convertir l'adresse de dépôt en coordonnées
+      // Convert depot address to coordinates
       List<Location> depotLocations =
           await locationFromAddress(widget.adresseDepot);
       if (depotLocations.isNotEmpty) {
@@ -53,7 +56,7 @@ class _TaskScreenState extends State<TaskScreen> {
             depotLocations.first.latitude, depotLocations.first.longitude);
       }
 
-      // Convertir les adresses des poubelles en coordonnées
+      // Convert poubelle addresses to coordinates
       for (String adresse in widget.adressePoubelle) {
         List<Location> locations = await locationFromAddress(adresse);
         if (locations.isNotEmpty) {
@@ -62,32 +65,31 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       }
 
-      // Tracez la route
+      // Draw the route
       await _createPolylines();
 
       setState(() {
-        isLoading = false; // Marquer le chargement comme terminé
+        isLoading = false; // Mark loading as completed
       });
     } catch (e) {
       print('Error occurred while getting coordinates: $e');
       setState(() {
-        isLoading =
-            false; // Marquer le chargement comme terminé même en cas d'erreur
+        isLoading = false; // Mark loading as completed even in case of error
       });
     }
   }
 
   Future<void> _createPolylines() async {
     if (depotCoordinate != null && poubelleCoordinates.isNotEmpty) {
-      // Ajouter le trajet de dépôt à la première poubelle
+      // Add the route from depot to the first poubelle
       await _addPolyline(depotCoordinate!, poubelleCoordinates.first);
 
-      // Ajouter les trajets entre les poubelles
+      // Add the routes between the poubelles
       for (int i = 0; i < poubelleCoordinates.length - 1; i++) {
         await _addPolyline(poubelleCoordinates[i], poubelleCoordinates[i + 1]);
       }
 
-      // Ajouter le trajet de la dernière poubelle au dépôt
+      // Add the route from the last poubelle to the depot
       await _addPolyline(poubelleCoordinates.last, depotCoordinate!);
     }
   }
@@ -135,7 +137,7 @@ class _TaskScreenState extends State<TaskScreen> {
                 child: Column(
                   children: [
                     Image.asset(
-                      "lib/UI/Assets/Images/logo.png",
+                      "lib/UI/Assets/Images/logo_png.png",
                       height: 60,
                       width: 120,
                     ),
@@ -156,7 +158,7 @@ class _TaskScreenState extends State<TaskScreen> {
                 height: 10,
               ),
               Container(
-                width: screenWidth / 1.3,
+                width: screenWidth / 1.2,
                 child: Card(
                   color: const Color.fromRGBO(240, 240, 240, 1),
                   shape: RoundedRectangleBorder(
@@ -221,9 +223,9 @@ class _TaskScreenState extends State<TaskScreen> {
                             Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "6348489404",
-                                    style: TextStyle(
+                                  Text(
+                                    "${widget.userData["numPermis"]}",
+                                    style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color.fromRGBO(14, 14, 14, 1),
                                         fontSize: 12),
@@ -296,51 +298,6 @@ class _TaskScreenState extends State<TaskScreen> {
                             ),
                           ],
                         ),
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          child: const Text(
-                            "Adresse de Dépots",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromRGBO(1, 113, 75, 1),
-                                fontSize: 17),
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "- ${widget.adresseDepot}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromRGBO(14, 14, 14, 1),
-                                fontSize: 14),
-                          ),
-                        ),
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          child: const Text(
-                            "Adresses des Poubelles",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromRGBO(1, 113, 75, 1),
-                                fontSize: 17),
-                          ),
-                        ),
-                        ...List.generate(
-                          widget.adressePoubelle.length,
-                          (index) => Container(
-                            alignment: Alignment.centerLeft,
-                            margin: const EdgeInsets.only(top: 3),
-                            child: Text(
-                              "${index + 1} - ${widget.adressePoubelle[index]}",
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Color.fromRGBO(14, 14, 14, 1),
-                                  fontSize: 13),
-                            ),
-                          ),
-                        ),
                         const SizedBox(
                           height: 15,
                         ),
@@ -357,21 +314,22 @@ class _TaskScreenState extends State<TaskScreen> {
                                   markerId: const MarkerId('depot'),
                                   position: depotCoordinate!,
                                   icon: BitmapDescriptor.defaultMarkerWithHue(
-                                      BitmapDescriptor.hueBlue),
+                                      BitmapDescriptor.hueRed),
                                   infoWindow: InfoWindow(
                                     title: 'Depot',
                                     snippet: widget.adresseDepot,
                                   ),
                                 ),
                               ...poubelleCoordinates.map(
-                                (coordinate) => Marker(
+                                    (coordinate) => Marker(
                                   markerId: MarkerId(coordinate.toString()),
                                   position: coordinate,
+                                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                                      BitmapDescriptor.hueBlue),
                                   infoWindow: InfoWindow(
                                     title: 'Poubelle',
                                     snippet: widget.adressePoubelle[
-                                        poubelleCoordinates
-                                            .indexOf(coordinate)],
+                                    poubelleCoordinates.indexOf(coordinate)],
                                   ),
                                 ),
                               ),
@@ -413,14 +371,62 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              Container(
+                width: screenWidth /1.2,
+                child: Column(
+                  children: [
+                    Container(
+
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        "  Adresse de Dépots",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(1, 113, 75, 1),
+                            fontSize: 17),
+                      ),
+                    ),
+                    AdresseCard(
+                      adresse: widget.adresseDepot,
+                      nomRegion: 'Depot Region',
+                      tauxRemplissage: 'N/A',
+                      etat: 'N/A',
+                      isTypee: false,
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        "  Adresses des Poubelles",
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(1, 113, 75, 1),
+                            fontSize: 17),
+                      ),
+                    ),
+                    ...widget.adressePoubelle.map((adresse) {
+                      return AdresseCard(
+                        adresse: adresse,
+                        nomRegion: 'Poubelle Region',
+                        tauxRemplissage: 'N/A',
+                        etat: 'N/A',
+                        isTypee: false,
+                      );
+                    }).toList(),
+
+                    const SizedBox(height:20),
+                  ],
+                ),
+              )
             ],
           ),
         ),
       ),
-      bottomNavigationBar: CostumNavBar(index: 0, routeData: widget.routeData),
+      bottomNavigationBar: CostumNavBar(
+        index: 0,
+        routeData: widget.routeData,
+        userData: widget.userData,
+      ),
     );
   }
 }

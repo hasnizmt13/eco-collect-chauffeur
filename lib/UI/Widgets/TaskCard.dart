@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../Screens/HistoriqueDetails.dart';
 class TaskCard extends StatelessWidget {
   const TaskCard({Key? key, required this.adresseDepot,required this.adressePoubelle, required this.date, required this.title, required this.startTime,
-  required this.endTime, required this.etat, required this.isTypee,required this.routeData}) : super(key: key);
+  required this.endTime, required this.etat, required this.isTypee,required this.routeData,required this.userData}) : super(key: key);
   final String adresseDepot;
   final List<String> adressePoubelle;
   final String date;
@@ -13,6 +13,7 @@ class TaskCard extends StatelessWidget {
   final String etat;
   final bool isTypee;
   final Map<String, dynamic> routeData;
+  final Map<String, dynamic> userData;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class TaskCard extends StatelessWidget {
         onTap: (){
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HistoriqueDetails(adressePoubelle:adressePoubelle ,adresseDepot: adresseDepot, title: title,date: date,startTime: startTime,endTime: endTime, routeData: routeData, )),
+        MaterialPageRoute(builder: (context) => HistoriqueDetails(adressePoubelle:adressePoubelle ,adresseDepot: adresseDepot, title: title,date: date,startTime: startTime,endTime: endTime, routeData: routeData,userData: userData, )),
       );
     },
     child :Container(

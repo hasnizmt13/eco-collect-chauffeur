@@ -5,8 +5,10 @@ import '../Widgets/TaskCard.dart';
 
 class HistoriquesScreen extends StatefulWidget {
 
-  const HistoriquesScreen({Key? key, required this.routeData}) : super(key: key);
+  const HistoriquesScreen({Key? key, required this.routeData,required this.userData}) : super(key: key);
   final Map<String, dynamic> routeData;
+  final Map<String, dynamic> userData;
+
 
   @override
   State<HistoriquesScreen> createState() => _HistoriquesScreenState();
@@ -67,7 +69,8 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
             endTime: listOfMap[index]["dateFin"].substring(11, 16) + " PM" ,
             etat: listOfMap[index]["etat"],
             isTypee: true,
-        routeData: widget.routeData,));
+        routeData: widget.routeData,
+        userData: widget.userData,));
 
     return Scaffold(
       body: isloading
@@ -85,7 +88,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                     child: Column(
                       children: [
                         Image.asset(
-                          "lib/UI/Assets/Images/logo.png",
+                          "lib/UI/Assets/Images/logo_png.png",
                           height: 60,
                           width: 120,
                         ),
@@ -159,7 +162,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: CostumNavBar(index: 2, routeData: widget.routeData),
+      bottomNavigationBar: CostumNavBar(index: 2, routeData: widget.routeData,userData: widget.userData,),
     );
   }
 }

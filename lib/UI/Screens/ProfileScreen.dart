@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_app_1/UI/Screens/SignIn.dart';
 import 'package:mobile_app_1/UI/Widgets/CostumNavBar.dart';
+import 'package:http/http.dart' as http;
+
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic> routeData;
   final String image;
-  final String full_name;
+  final Map<String, dynamic> userData;
   const ProfileScreen(
       {Key? key,
       required this.image,
-      required this.full_name,
+      required this.userData,
       required this.routeData})
       : super(key: key);
 
@@ -35,6 +37,23 @@ class _ProfileScreen extends State<ProfileScreen> {
       });
     }
   }
+  Future<void> _logout() async {
+    final response =
+    await http.get(Uri.parse('http://172.20.10.4:5000/api/auth/logout'));
+
+    if (response.statusCode == 200) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const SignIn()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Échec de la déconnexion')),
+      );
+    }
+  }
+
 
   bool _obscureText = true;
   bool _obscureText2 = true;
@@ -50,19 +69,40 @@ class _ProfileScreen extends State<ProfileScreen> {
           ),
         ),
         toolbarHeight: 245,
-        backgroundColor: const  Color.fromRGBO(1, 113, 75, 1),
+        backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
         flexibleSpace: SafeArea(
             child: Column(
           children: [
             const SizedBox(height: 25),
-            const Text(
-              "My Profile",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Poppins',
-                color: Colors.white,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(
+                  width: 100,
+                ),
+                const Text(
+                  "My Profile",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Poppins',
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                  width: 100,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.logout,
+                        size: 27, color: Colors.white),
+                    onPressed: _logout,
+                    label: const SizedBox.shrink(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 5),
             Container(
@@ -79,9 +119,9 @@ class _ProfileScreen extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            const Text(
-              "Hasni ZOUMATA",
-              style: TextStyle(
+             Text(
+              '${widget.userData['first_name']} ${widget.userData['last_name']}',
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 fontFamily: 'Poppins',
@@ -112,11 +152,12 @@ class _ProfileScreen extends State<ProfileScreen> {
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(
-                        left: 20, bottom: 20, right: 20),
+                    margin:
+                        const EdgeInsets.only(left: 20, bottom: 20, right: 20),
                     child: Column(
                       children: [
                         TextFormField(
+                          initialValue: widget.userData['email'],
                           decoration: const InputDecoration(
                             labelText: 'Email',
                             labelStyle: TextStyle(
@@ -217,7 +258,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                         height: 50,
                         width: 300,
                         child: MaterialButton(
-                          onPressed:(){},
+                          onPressed: () {},
                           color: const Color.fromRGBO(1, 113, 75, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(23.0),
@@ -235,39 +276,13 @@ class _ProfileScreen extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-               /*   SizedBox(
-                    height: 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 77, 166, 36),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25.0),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignIn()),
-                        );
-                      },
-                      child: const Text(
-                        "Sign Out",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          fontFamily: 'Poppins',
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),*/
                 ],
               ),
             ),
           ),
         ),
       ),
-      bottomNavigationBar: CostumNavBar(index: 3, routeData: widget.routeData),
+      bottomNavigationBar: CostumNavBar(index: 3, routeData: widget.routeData,userData: widget.userData),
     );
   }
 }

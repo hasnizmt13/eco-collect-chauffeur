@@ -15,7 +15,8 @@ class HistoriqueDetails extends StatefulWidget {
         required this.endTime,
         required this.adresseDepot,
         required this.adressePoubelle,
-        required this.routeData})
+        required this.routeData,
+        required this.userData})
       : super(key: key);
   final String title;
   final String date;
@@ -24,6 +25,8 @@ class HistoriqueDetails extends StatefulWidget {
   final String adresseDepot;
   final List<String> adressePoubelle;
   final Map<String, dynamic> routeData;
+  final Map<String, dynamic> userData;
+
 
   @override
   _HistoriqueDetailsState createState() => _HistoriqueDetailsState();
@@ -37,7 +40,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   Map<MarkerId, Marker> markers = {};
-  String googleAPiKey = "";
+  String googleAPiKey = "AIzaSyD9tpt5CiBIxms61wQ_LR8o0IqDhmoI8Ks";
 
 
   @override
@@ -136,7 +139,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                 child: Column(
                   children: [
                     Image.asset(
-                      "lib/UI/Assets/Images/logo.png",
+                      "lib/UI/Assets/Images/logo_png.png",
                       height: 60,
                       width: 120,
                     ),
@@ -395,7 +398,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
           ),
         ),
       ),
-      bottomNavigationBar: CostumNavBar(index: 2, routeData: widget.routeData),
+      bottomNavigationBar: CostumNavBar(index: 2, routeData: widget.routeData,userData: widget.userData,),
     );
   }
 }

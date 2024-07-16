@@ -17,7 +17,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
 
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SignIn()),
+        MaterialPageRoute(builder: (context) =>  SignIn()),
       );
     });
   }
@@ -28,7 +28,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
       body: SafeArea(
         child: Center(
           child: Image.asset(
-            "lib/UI/Assets/Images/logo.png",
+            "lib/UI/Assets/Images/logo_png.png",
             height: 150,
             width: 150,
           ),
