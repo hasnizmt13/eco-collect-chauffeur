@@ -82,7 +82,7 @@ class _AdresseCardState extends State<AdresseCard> {
               widget.nomRegion,
               style: const TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 17,
+                  fontSize: 15,
                   color: Color.fromRGBO(1, 113, 75, 1)),
             ),
             const SizedBox(height: 5),

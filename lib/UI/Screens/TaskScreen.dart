@@ -4,6 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../Widgets/CostumNavBar.dart';
 import '../Widgets/AdresseCard.dart';
+import 'ReportProblemScreen.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({
@@ -38,7 +39,7 @@ class _TaskScreenState extends State<TaskScreen> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   bool isLoading = true;
-  String googleAPiKey = "AIzaSyD9tpt5CiBIxms61wQ_LR8o0IqDhmoI8Ks";
+  String googleAPiKey = "";
 
   @override
   void initState() {
@@ -269,7 +270,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                "Votre mission d'aujourd'hui c'est le ramassage dans cette adresse ",
+                                "Votre mission d'aujourd'hui c'est le ramassage dans ces adresses ",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: Color.fromRGBO(14, 14, 14, 1),
@@ -321,7 +322,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                   ),
                                 ),
                               ...poubelleCoordinates.map(
-                                    (coordinate) => Marker(
+                                (coordinate) => Marker(
                                   markerId: MarkerId(coordinate.toString()),
                                   position: coordinate,
                                   icon: BitmapDescriptor.defaultMarkerWithHue(
@@ -329,7 +330,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                   infoWindow: InfoWindow(
                                     title: 'Poubelle',
                                     snippet: widget.adressePoubelle[
-                                    poubelleCoordinates.indexOf(coordinate)],
+                                        poubelleCoordinates
+                                            .indexOf(coordinate)],
                                   ),
                                 ),
                               ),
@@ -345,7 +347,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         ),
                         Center(
                           child: SizedBox(
-                            width: 230,
+                            width: 250,
                             child: MaterialButton(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               color: const Color.fromRGBO(1, 113, 75, 1),
@@ -353,10 +355,10 @@ class _TaskScreenState extends State<TaskScreen> {
                                 borderRadius: BorderRadius.circular(25.0),
                               ),
                               child: const Text(
-                                'Mark as Done',
+                                'Marquez comme Terminé',
                                 style: TextStyle(
                                     letterSpacing: 0.8,
-                                    fontWeight: FontWeight.w900,
+                                    fontWeight: FontWeight.w600,
                                     color: Colors.white,
                                     fontSize: 16),
                               ),
@@ -366,24 +368,62 @@ class _TaskScreenState extends State<TaskScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Center(
+                          child: SizedBox(
+                            width: 230,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  side: const BorderSide(
+                                      color: Color.fromRGBO(1, 113, 75, 1)),
+                                  borderRadius: BorderRadius.circular(25.0),
+                                ),
+                              ),
+                              child: const Text(
+                                'Signaler un problème',
+                                style: TextStyle(
+                                    letterSpacing: 0.8,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromRGBO(1, 113, 75, 1),
+                                    fontSize: 16),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            ReportProblemScreen(
+                                                routeData: widget.routeData,
+                                                userData: widget.userData)));
+                              },
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
+              const SizedBox(
+                height: 20,
+              ),
               Container(
-                width: screenWidth /1.2,
+                width: screenWidth / 1.2,
                 child: Column(
                   children: [
                     Container(
-
                       alignment: Alignment.centerLeft,
                       child: const Text(
                         "  Adresse de Dépots",
                         style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color.fromRGBO(1, 113, 75, 1),
-                            fontSize: 17),
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            fontSize: 19),
                       ),
                     ),
                     AdresseCard(
@@ -393,15 +433,17 @@ class _TaskScreenState extends State<TaskScreen> {
                       etat: 'N/A',
                       isTypee: false,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 20,
+                    ),
                     Container(
                       alignment: Alignment.centerLeft,
                       child: const Text(
                         "  Adresses des Poubelles",
                         style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color.fromRGBO(1, 113, 75, 1),
-                            fontSize: 17),
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                            fontSize: 19),
                       ),
                     ),
                     ...widget.adressePoubelle.map((adresse) {
@@ -413,8 +455,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         isTypee: false,
                       );
                     }).toList(),
-
-                    const SizedBox(height:20),
+                    const SizedBox(height: 20),
                   ],
                 ),
               )

@@ -5,12 +5,15 @@ import '../Screens/HistoriquesScreen.dart';
 import '../Screens/ProfileScreen.dart';
 
 class CostumNavBar extends StatelessWidget {
-  const CostumNavBar({Key? key, required this.index, required this.routeData,required this.userData})
+  const CostumNavBar(
+      {Key? key,
+      required this.index,
+      required this.routeData,
+      required this.userData})
       : super(key: key);
   final int index;
   final Map<String, dynamic> routeData;
   final Map<String, dynamic> userData;
-
 
   List<Widget> _listOfScreens(BuildContext context) {
     List<String> poubelleAddresses = [];
@@ -39,13 +42,23 @@ class CostumNavBar extends StatelessWidget {
           adresseDepot: depotAddress,
           adressePoubelle: poubelleAddresses,
           routeData: routeData,
-      userData: userData),
-      MapScreen(routeData: routeData,userData: userData,),
-      HistoriquesScreen(routeData: routeData,userData: userData,),
+          userData: userData),
+      MapScreen(
+        routeData: routeData,
+        userData: userData,
+        adresseDepot: depotAddress,
+        adressePoubelle: poubelleAddresses,
+      ),
+      HistoriquesScreen(
+        routeData: routeData,
+        userData: userData,
+      ),
       ProfileScreen(
         image: "lib/UI/Assets/Images/img_5.png",
         userData: userData,
         routeData: routeData,
+        adresseDepot: depotAddress,
+        adressePoubelle: poubelleAddresses,
       ),
     ];
   }

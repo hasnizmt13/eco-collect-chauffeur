@@ -17,7 +17,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
 
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) =>  SignIn()),
+        MaterialPageRoute(builder: (context) =>  const SignIn(adresseDepot: '', adressePoubelle: [],)),
       );
     });
   }

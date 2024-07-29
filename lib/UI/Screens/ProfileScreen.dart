@@ -11,11 +11,15 @@ class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic> routeData;
   final String image;
   final Map<String, dynamic> userData;
+  final String adresseDepot;
+  final List<String> adressePoubelle;
   const ProfileScreen(
       {Key? key,
       required this.image,
       required this.userData,
-      required this.routeData})
+      required this.routeData,
+        required this.adresseDepot,
+        required this.adressePoubelle,})
       : super(key: key);
 
   @override
@@ -45,7 +49,7 @@ class _ProfileScreen extends State<ProfileScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-            builder: (context) => const SignIn()),
+            builder: (context) => SignIn(adresseDepot: widget.adresseDepot, adressePoubelle: widget.adressePoubelle)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

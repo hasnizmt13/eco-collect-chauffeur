@@ -3,16 +3,22 @@ import '../Widgets/CostumNavBar.dart';
 
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
-
-import 'package:google_directions_api/google_directions_api.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key, required this.routeData,required this.userData}) : super(key: key);
+  const MapScreen({
+    Key? key,
+    required this.routeData,
+    required this.userData,
+    required this.adresseDepot,
+    required this.adressePoubelle,
+  }) : super(key: key);
   final Map<String, dynamic> routeData;
   final Map<String, dynamic> userData;
+  final String adresseDepot;
+  final List<String> adressePoubelle;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -20,79 +26,74 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
-  LatLng _center = const LatLng(36.737232, 3.086472);
   Map<MarkerId, Marker> markers = {};
-//  Map<PolylineId, Polyline> polylines = {};
   Set<Polyline> polylines = {};
-
+  late LatLng depotCoordinate = const LatLng(36.737232, 3.086472);
+  List<LatLng> poubelleCoordinates = [];
   List<LatLng> polylineCoordinates = [];
+
   PolylinePoints polylinePoints = PolylinePoints();
-  String googleAPiKey = "AIzaSyD9tpt5CiBIxms61wQ_LR8o0IqDhmoI8Ks"; // Replace with your API key
-  late String depotAddress;
-  late List<String> poubelleAddresses;
+  String googleAPiKey =
+      ""; // Replace with your API key
+
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    DirectionsService.init(googleAPiKey);
-    depotAddress = widget.routeData['data']['routes'][0]['route'][0]['from'];
-    poubelleAddresses = List<String>.from(widget.routeData['data']['routes'][0]['route'].map((segment) => segment['to']));
-    _initializeCenter(); // Initialize _center with depot coordinates
-    getPolylineFromAPI(widget.routeData); // Utilisez les données de l'API dès le démarrage
+    _getCoordinates();
   }
 
-  Future<void> _initializeCenter() async {
-    List<Location> depotLocations = await locationFromAddress(depotAddress);
-    if (depotLocations.isNotEmpty) {
+
+  Future<void> _getCoordinates() async {
+    try {
+      // Convert depot address to coordinates
+      List<Location> depotLocations =
+          await locationFromAddress(widget.adresseDepot);
+      if (depotLocations.isNotEmpty) {
+        depotCoordinate = LatLng(
+            depotLocations.first.latitude, depotLocations.first.longitude);
+      }
+
+      // Convert poubelle addresses to coordinates
+      for (String adresse in widget.adressePoubelle) {
+        List<Location> locations = await locationFromAddress(adresse);
+        if (locations.isNotEmpty) {
+          poubelleCoordinates
+              .add(LatLng(locations.first.latitude, locations.first.longitude));
+        }
+      }
+
+      // Draw the route
+      await _createPolylines();
+
       setState(() {
-        _center = LatLng(depotLocations.first.latitude, depotLocations.first.longitude);
+        isLoading = false; // Mark loading as completed
+      });
+    } catch (e) {
+      print('Error occurred while getting coordinates: $e');
+      setState(() {
+        isLoading = false; // Mark loading as completed even in case of error
       });
     }
   }
 
-  void getPolylineFromAPI(Map<String, dynamic> data) async {
-    if (data.isNotEmpty && data['status'] == 'success') {
-      List<dynamic> routeSegments = data['data']['routes'][0]['route'];
+  Future<void> _createPolylines() async {
+    if (poubelleCoordinates.isNotEmpty) {
+      // Add the route from depot to the first poubelle
+      await _addPolyline(depotCoordinate, poubelleCoordinates.first);
 
-      LatLng? previousLatLng;
-
-      for (var segment in routeSegments) {
-        String formattedFrom = formatAddress(segment['from']);
-        String formattedTo = formatAddress(segment['to']);
-
-        List<Location> fromLocations = await locationFromAddress(formattedFrom);
-        List<Location> toLocations = await locationFromAddress(formattedTo);
-
-        if (fromLocations.isNotEmpty && toLocations.isNotEmpty) {
-          LatLng fromLatLng = LatLng(fromLocations.first.latitude, fromLocations.first.longitude);
-          LatLng toLatLng = LatLng(toLocations.first.latitude, toLocations.first.longitude);
-
-          // Obtenez des directions précises entre les deux points
-          if (previousLatLng != null) {
-            await _getDirections(previousLatLng, fromLatLng);
-          }
-
-          previousLatLng = toLatLng;
-
-          // Ajoutez des marqueurs pour les emplacements de départ et d'arrivée
-          _addMarker(fromLatLng, 'from_$formattedFrom', BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue), segment['from']);
-          _addMarker(toLatLng, 'to_$formattedTo', BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed), segment['to']);
-        }
+      // Add the routes between the poubelles
+      for (int i = 0; i < poubelleCoordinates.length - 1; i++) {
+        await _addPolyline(poubelleCoordinates[i], poubelleCoordinates[i + 1]);
       }
 
-      if (previousLatLng != null) {
-        // Reliez le dernier point de l'itinéraire au point initial pour boucler le circuit
-        LatLng initialLatLng = polylineCoordinates.first;
-        await _getDirections(previousLatLng, initialLatLng);
-      }
-
-    //  _addPolyLine(); // Tracez la polyline
-    } else {
-      print('Failed to load route from API: ${data['message']}');
+      // Add the route from the last poubelle to the depot
+      await _addPolyline(poubelleCoordinates.last, depotCoordinate);
     }
   }
 
-  Future<void> _getDirections(LatLng from, LatLng to) async {
+  Future<void> _addPolyline(LatLng from, LatLng to) async {
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       googleAPiKey,
@@ -118,41 +119,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-
-    // Wait a bit before centering the map
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Center map on depot location
-    mapController.animateCamera(CameraUpdate.newLatLngZoom(_center, 14.0));
-  }
-
-  _addMarker(LatLng position, String id, BitmapDescriptor descriptor, String title) {
-    MarkerId markerId = MarkerId(id);
-    Marker marker = Marker(
-      markerId: markerId,
-      icon: descriptor,
-      position: position,
-      infoWindow: InfoWindow(
-        title: title,
-      ),
-    );
-    markers[markerId] = marker;
-  }
-
-  _addPolyLine() {
-    PolylineId id = const PolylineId("poly");
-    Polyline polyline = Polyline(
-      polylineId: id,
-      color: Colors.blue,
-      points: polylineCoordinates,
-      width: 5,
-    );
-  //  polylines[id] = polyline;
-    setState(() {});
-  }
-
   String formatAddress(String address) {
     return address
         .replaceAll(' ', '+')
@@ -165,21 +131,22 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _launchGoogleMapsNavigation() async {
-    if (depotAddress.isEmpty || poubelleAddresses.isEmpty) {
+    if (widget.adresseDepot.isEmpty || widget.adressePoubelle.isEmpty) {
       print('No route available');
       return;
     }
 
-    String origin = formatAddress(depotAddress);
-    String destination = formatAddress(poubelleAddresses.last);
+    String origin = formatAddress(widget.adresseDepot);
+    String destination = formatAddress(widget.adresseDepot);
 
     // Create a list of waypoints excluding the last address
-    List<String> waypointsList = List.from(poubelleAddresses)..removeLast();
-    String waypoints = waypointsList
-        .map((address) => formatAddress(address))
-        .join('|');
+    List<String> waypointsList = List.from(widget.adressePoubelle)
+      ..removeLast();
+    String waypoints =
+        waypointsList.map((address) => formatAddress(address)).join('|');
 
-    String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&waypoints=$waypoints&travelmode=driving';
+    String googleMapsUrl =
+        'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&waypoints=$waypoints&travelmode=driving';
     print(googleMapsUrl);
 
     if (await canLaunch(googleMapsUrl)) {
@@ -188,6 +155,7 @@ class _MapScreenState extends State<MapScreen> {
       throw 'Could not launch $googleMapsUrl';
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -195,40 +163,75 @@ class _MapScreenState extends State<MapScreen> {
         child: Stack(
           children: [
             GoogleMap(
-              mapType: MapType.normal,
-              onMapCreated: _onMapCreated,
-              markers: Set<Marker>.of(markers.values),
-              polylines: polylines,
               initialCameraPosition: CameraPosition(
-                target: _center,
-                zoom: 14.0,
+                target: depotCoordinate,
+                zoom: 14,
               ),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('depot'),
+                  position: depotCoordinate,
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueRed),
+                  infoWindow: InfoWindow(
+                    title: 'Depot',
+                    snippet: widget.adresseDepot,
+                  ),
+                ),
+                ...poubelleCoordinates.map(
+                  (coordinate) => Marker(
+                    markerId: MarkerId(coordinate.toString()),
+                    position: coordinate,
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueBlue),
+                    infoWindow: InfoWindow(
+                      title: 'Poubelle',
+                      snippet: widget.adressePoubelle[
+                          poubelleCoordinates.indexOf(coordinate)],
+                    ),
+                  ),
+                ),
+              }.toSet(),
+              polylines: polylines,
+              onMapCreated: (GoogleMapController controller) {
+                mapController = controller;
+              },
             ),
             Positioned(
-              top: 20,
-              left: 70,
-              right:70,
+              width: 200,
+              bottom: 20,
+              left: 10,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromRGBO(1, 113, 75, 1),
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 10),
+                  backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
+                    side: const BorderSide(
+                        color: Color.fromRGBO(1, 113, 75, 1)),
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
                 onPressed: _launchGoogleMapsNavigation,
-
-                child: const Text('Start Navigation',style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  color: Colors.white,
-                ),),
+                child: const Text(
+                  'Start Navigation',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                    color: Color.fromRGBO(1, 113, 75, 1),
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: CostumNavBar(index: 1, routeData: widget.routeData, userData: widget.userData,),
+      bottomNavigationBar: CostumNavBar(
+        index: 1,
+        routeData: widget.routeData,
+        userData: widget.userData,
+      ),
     );
   }
 }

@@ -5,8 +5,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class SignIn extends StatefulWidget {
+  final String adresseDepot;
+  final List<String> adressePoubelle;
 
-  const SignIn({Key? key}) : super(key: key);
+  const SignIn({
+    Key? key,
+    required this.adresseDepot,
+    required this.adressePoubelle,
+  }) : super(key: key);
 
   @override
   State<SignIn> createState() => _SignIn();
@@ -93,7 +99,12 @@ class _SignIn extends State<SignIn> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => MapScreen(routeData: routeData,userData: user,),
+                builder: (context) => MapScreen(
+                  routeData: routeData,
+                  userData: user,
+                  adresseDepot: widget.adresseDepot,
+                  adressePoubelle: widget.adressePoubelle,
+                ),
               ),
             );
           }
@@ -115,7 +126,6 @@ class _SignIn extends State<SignIn> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
