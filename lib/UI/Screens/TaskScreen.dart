@@ -78,9 +78,11 @@ class _TaskScreenState extends State<TaskScreen> {
       });
     } catch (e) {
       print('Error occurred while getting coordinates: $e');
-      setState(() {
-        isLoading = false; // Mark loading as completed even in case of error
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -132,11 +134,17 @@ class _TaskScreenState extends State<TaskScreen> {
 
     final url = Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/historiqueChauffeur');
 
-    // Construire itinéraire proprement depuis poubelleCoordinates
-    List<Map<String, double>> itineraryList = poubelleCoordinates.map((coord) => {
-      "latitude": coord.latitude,
-      "longitude": coord.longitude,
-    }).toList();
+    List<Map<String, double>> itineraryList = [];
+
+
+
+    for (LatLng coord in poubelleCoordinates) {
+      itineraryList.add({
+        "latitude": coord.latitude,
+        "longitude": coord.longitude,
+      });
+    }
+
 
     final body = {
       "chauffeur_id": widget.userData['id'],
@@ -146,8 +154,10 @@ class _TaskScreenState extends State<TaskScreen> {
       "date_fin": endDateTime.toIso8601String(),
       "titre": "Ramassage poubelle",
       "etat": "Done",
-      "itineraire": jsonEncode(itineraryList),
+      "itineraire": itineraryList,
     };
+    print( depotCoordinate);
+    print(itineraryList);
 
     try {
       final response = await http.post(

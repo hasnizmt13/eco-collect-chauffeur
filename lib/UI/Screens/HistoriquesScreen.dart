@@ -73,6 +73,21 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
         listOfMap = [];
 
         for (var task in data) {
+          // 1. Récupérer le dépôt
+          double depotLat = task['adresse_depart_latitude'];
+          double depotLng = task['adresse_depart_longitude'];
+
+          String depotAdresse = '';
+          try {
+            List<Placemark> depotPlacemarks = await placemarkFromCoordinates(depotLat, depotLng);
+            if (depotPlacemarks.isNotEmpty) {
+              Placemark depotPlacemark = depotPlacemarks.first;
+              depotAdresse = "${depotPlacemark.street}, ${depotPlacemark.locality}, ${depotPlacemark.country}";
+            }
+          } catch (e) {
+            print('Erreur géocodage dépôt: $e');
+          }
+
           // Itinéraire contient plusieurs points
           List<dynamic> itineraire = jsonDecode(task['itineraire']);
           List<String> poubelleAdresses = [];
@@ -96,8 +111,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
 
           listOfMap.add({
             "idDistributeur": task['id'].toString(),
-            "adresse":
-                "${poubelleAdresses.isNotEmpty ? poubelleAdresses.first : ''}", // Premier point = adresse départ
+            "adresse":depotAdresse, // Premier point = adresse départ
             "dateDebut": task['date_debut'],
             "dateFin": task['date_fin'],
             "title": task['titre'],
