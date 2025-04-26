@@ -1,6 +1,12 @@
+import 'dart:convert';
+
+
 import 'package:flutter/material.dart';
 import '../Widgets/CostumNavBar.dart';
 import 'ProblemReportedScreen.dart';
+
+import 'ProblemReportedScreen.dart';
+import 'package:http/http.dart' as http;
 
 class ReportProblemScreen extends StatefulWidget {
   final Map<String, dynamic> routeData;
@@ -17,6 +23,27 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _subject;
   late String _description;
+
+
+  Future<void> _sendReclamation() async {
+
+    final url = Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/contact');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "idUser": widget.userData['id'],
+        "titre": _subject,
+        "message": _description,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Réclamation envoyée avec succès');
+    } else {
+      print('Erreur lors de l\'envoi de la réclamation : ${response.statusCode}');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +86,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                     children: [
                       TextFormField(
                         decoration: const InputDecoration(
-                          hintText: "Raison du réclamation...",
+                          hintText: "Raison de la réclamation...",
                           hintStyle: TextStyle(
                               color: Color.fromRGBO(51, 51, 51, 0.74),
                               fontSize: 14),
@@ -121,9 +148,11 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                                   color: Colors.white,
                                   fontSize: 16),
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
+                                await _sendReclamation();
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

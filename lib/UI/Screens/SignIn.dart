@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:mobile_app_1/UI/Screens/MapScreen.dart';
+import '../Widgets/Address.dart';
 import 'ForgotPassword.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SignIn extends StatefulWidget {
   final String adresseDepot;
@@ -24,6 +27,8 @@ class _SignIn extends State<SignIn> {
   bool _isloading = false;
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
+  String googleAPiKey = dotenv.env['API_KEY'] ?? '';
+/*
   final List<String> addressesn = [
     '1 Avenue du Docteur Saadane, 16000 Alger',
     'Place des Martyrs, 16000 Alger',
@@ -45,15 +50,72 @@ class _SignIn extends State<SignIn> {
     'Rue des Frères Berrezouane, Alger Centre, 16000 Alger',
     'Rue Hamani Arezki, Alger Centre, 16000 Alger'
   ];
+*/
+  Future<String> geocode(double latitude, double longitude) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+    if (placemarks.isNotEmpty) {
+      final placemark = placemarks.first;
+      return "${placemark.street}, ${placemark.locality}, ${placemark.postalCode}, ${placemark.country}";
+    }
+    return 'Unknown Location';
+  }
 
-  Future<Map<String, dynamic>> fetchRouteData() async {
-    final List<String> addresses = addressesn.map((address) {
+  Future<List<Address>> fetchTrashData(int userId) async {
+    print("Début du fetch des données de poubelles pour l'utilisateur $userId...");
+
+    final response = await http.get(
+      Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/task?id=$userId'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List;
+      List<Address> addresses = [];
+
+      print("Données reçues (${data.length} éléments)");
+
+      for (var item in data) {
+        try {
+          if (item['latitude'] == null || item['longitude'] == null) {
+            print("Coordonnées nulles pour la poubelle ID ${item['id']}");
+            continue;
+          }
+
+          final addressStr = await geocode(item['latitude'], item['longitude']);
+
+
+          final address = Address(
+            id: item['trash_id'],
+            region: item['region_nom'],
+            address: addressStr,
+            distance: 0.0,
+            tauxRemplissage: item['quantity'],
+            longitude: item['longitude'],
+            latitude: item['latitude'],
+          );
+
+          print("Adresse trouvée : ${address.address} pour la poubelle ID ${address.id}");
+          addresses.add(address);
+        } catch (e) {
+          print("Erreur de géocodage pour la poubelle ID ${item['trash_id']}: $e");
+        }
+      }
+
+      print("Fin du traitement - ${addresses.length} adresses ajoutées");
+      return addresses;
+    } else {
+      print("Erreur HTTP : ${response.statusCode}");
+      throw Exception('Failed to load trash data');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchRouteData(List<String> addressesn) async {
+    final List<String> addressesEncoded = addressesn.map((address) {
       return address.replaceAll(' ', '+');
     }).toList();
-    String addressesString = addresses.join(",");
+    String addressesString = addressesEncoded.join(",");
     print(addressesString);
     final url =
-        "https://api-pfe-1.onrender.com/api/calculate_distance/?addresses=$addressesString&num_vehicles=4&vehicle_id=1";
+        "https://api-pfe-1.onrender.com/api/calculate_distance/?addresses=$addressesString&num_vehicles=4&vehicle_id=0";
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -79,7 +141,7 @@ class _SignIn extends State<SignIn> {
       });
       try {
         final response = await http.post(
-          Uri.parse('http://172.20.10.4:5000/api/authRole/loginDriver'),
+          Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/authRole/loginDriver'),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -93,7 +155,22 @@ class _SignIn extends State<SignIn> {
           if (data['status'] == 200) {
             final user = data['data'];
             print(user);
-            final routeData = await fetchRouteData();
+            final userId = user['id'];
+            final addressesn = await fetchTrashData(userId);
+           // final routeData = await fetchRouteData(addressesn.map((e) => e.address).toList());
+            final routeData = await fetchRouteData(addressesn.map((e) => e.address).toList());
+            List<dynamic> routeList = routeData['data']['routes'][0]['route'];
+
+            // Enlever les étapes inutiles
+            routeList = routeList.where((step) {
+              return !(step['from'] == step['to'] && step['duree'] == 0);
+            }).toList();
+
+            // Remplacer dans routeData filtré
+            routeData['data']['routes'][0]['route'] = routeList;
+
+
+
             print(routeData);
 
             Navigator.pushReplacement(
@@ -147,7 +224,7 @@ class _SignIn extends State<SignIn> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Good Morning,  ",
+                            "Bonjour,  ",
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w400,
@@ -156,7 +233,7 @@ class _SignIn extends State<SignIn> {
                             ),
                           ),
                           Text(
-                            "Welcome back!",
+                            "Content de vous revoir!",
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
@@ -178,7 +255,7 @@ class _SignIn extends State<SignIn> {
                         const EdgeInsets.only(top: 100, right: 20, left: 20),
                     child: TextFormField(
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Adresse email',
                         labelStyle: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -189,10 +266,10 @@ class _SignIn extends State<SignIn> {
                       keyboardType: TextInputType.emailAddress,
                       validator: (input) {
                         if (input!.isEmpty) {
-                          return 'Please enter your email';
+                          return 'Veuillez saisir votre adresse email';
                         }
                         if (!input.contains('@')) {
-                          return 'Please enter a valid email';
+                          return 'Veuillez saisir une adresse email valide';
                         }
                         return null;
                       },
@@ -205,13 +282,13 @@ class _SignIn extends State<SignIn> {
                       obscureText: _obscureText,
                       validator: (input) {
                         if (input!.isEmpty) {
-                          return 'Please enter your Password';
+                          return 'Veuillez saisir votre mot de passe';
                         }
                         return null;
                       },
                       onSaved: (input) => _password = input!,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: 'Mot de passe',
                         labelStyle: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -274,7 +351,7 @@ class _SignIn extends State<SignIn> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const ForgotPassword()),
+                                builder: (context) =>  ForgotPassword(adresseDepot: widget.adresseDepot, adressePoubelle: widget.adressePoubelle)),
                           );
                         },
                         child: const Text(
@@ -308,7 +385,7 @@ class _SignIn extends State<SignIn> {
                                 strokeWidth: 3,
                               )
                             : const Text(
-                                "Login",
+                                "Connexion",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,

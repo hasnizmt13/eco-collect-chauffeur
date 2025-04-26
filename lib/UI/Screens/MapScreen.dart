@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({
@@ -25,6 +29,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+
   late GoogleMapController mapController;
   Map<MarkerId, Marker> markers = {};
   Set<Polyline> polylines = {};
@@ -33,8 +38,7 @@ class _MapScreenState extends State<MapScreen> {
   List<LatLng> polylineCoordinates = [];
 
   PolylinePoints polylinePoints = PolylinePoints();
-  String googleAPiKey =
-      ""; // Replace with your API key
+  String googleAPiKey = dotenv.env['API_KEY'] ?? '';
 
   bool isLoading = true;
 
@@ -43,7 +47,6 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _getCoordinates();
   }
-
 
   Future<void> _getCoordinates() async {
     try {
@@ -130,11 +133,15 @@ class _MapScreenState extends State<MapScreen> {
         .replaceAll('ç', '%C3%A7');
   }
 
+
+
   void _launchGoogleMapsNavigation() async {
+
     if (widget.adresseDepot.isEmpty || widget.adressePoubelle.isEmpty) {
       print('No route available');
       return;
     }
+
 
     String origin = formatAddress(widget.adresseDepot);
     String destination = formatAddress(widget.adresseDepot);
@@ -174,7 +181,7 @@ class _MapScreenState extends State<MapScreen> {
                   icon: BitmapDescriptor.defaultMarkerWithHue(
                       BitmapDescriptor.hueRed),
                   infoWindow: InfoWindow(
-                    title: 'Depot',
+                    title: 'Dépôt',
                     snippet: widget.adresseDepot,
                   ),
                 ),
@@ -203,18 +210,17 @@ class _MapScreenState extends State<MapScreen> {
               left: 10,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(
-                        color: Color.fromRGBO(1, 113, 75, 1)),
+                    side:
+                        const BorderSide(color: Color.fromRGBO(1, 113, 75, 1)),
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
                 onPressed: _launchGoogleMapsNavigation,
                 child: const Text(
-                  'Start Navigation',
+                  'Démarrer la navigation',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

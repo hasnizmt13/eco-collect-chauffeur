@@ -3,6 +3,8 @@ import '../Screens/TaskScreen.dart';
 import '../Screens/MapScreen.dart';
 import '../Screens/HistoriquesScreen.dart';
 import '../Screens/ProfileScreen.dart';
+import 'package:intl/intl.dart';
+
 
 class CostumNavBar extends StatelessWidget {
   const CostumNavBar(
@@ -18,6 +20,18 @@ class CostumNavBar extends StatelessWidget {
   List<Widget> _listOfScreens(BuildContext context) {
     List<String> poubelleAddresses = [];
     String depotAddress = '';
+
+    DateTime now = DateTime.now();
+    String todayDate = DateFormat('yyyy-MM-dd').format(now);
+
+    DateTime startTime = DateTime(now.year, now.month, now.day, 8, 0);
+
+    int totalDurationInSeconds = routeData['data']['total_duree'];
+
+    DateTime estimatedEndTime = startTime.add(Duration(seconds: totalDurationInSeconds));
+
+    String formattedStartTime = DateFormat('HH:mm').format(startTime);
+    String formattedEstimatedEndTime = DateFormat('HH:mm').format(estimatedEndTime);
 
     if (routeData.isNotEmpty &&
         routeData['data'] != null &&
@@ -35,14 +49,15 @@ class CostumNavBar extends StatelessWidget {
     }
     return [
       TaskScreen(
-          title: 'Task Title',
-          date: '2023-01-01',
-          startTime: '08:00',
-          estimatedEndTime: '10:00',
+          title: 'Mission du jour',
+          date: todayDate,
+          startTime: formattedStartTime,
+          estimatedEndTime: formattedEstimatedEndTime,
           adresseDepot: depotAddress,
           adressePoubelle: poubelleAddresses,
           routeData: routeData,
-          userData: userData),
+          userData: userData
+       ),
       MapScreen(
         routeData: routeData,
         userData: userData,

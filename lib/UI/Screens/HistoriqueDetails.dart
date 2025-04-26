@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../Widgets/CostumNavBar.dart';
 
 class HistoriqueDetails extends StatefulWidget {
@@ -40,7 +42,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   Map<MarkerId, Marker> markers = {};
-  String googleAPiKey = "AIzaSyD9tpt5CiBIxms61wQ_LR8o0IqDhmoI8Ks";
+  String googleAPiKey = dotenv.env['API_KEY'] ?? '';
 
 
   @override
@@ -147,7 +149,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                       height: 5,
                     ),
                     const Text(
-                      "Historique detail",
+                      "Détails de l’historique",
                       style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
@@ -162,7 +164,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
               Container(
                 width: screenWidth / 1.3,
                 child: Card(
-                  color: const Color.fromRGBO(240, 240, 240, 1),
+                  color: const Color.fromRGBO(242, 242, 242, 1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -193,7 +195,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Vehicule ID",
+                              "ID du véhicule",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Color.fromRGBO(51, 51, 51, 0.6),
@@ -207,14 +209,14 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                                   fontSize: 12),
                             ),
                             Text(
-                              "Start Time",
+                              "Heure de début",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Color.fromRGBO(51, 51, 51, 0.6),
                                   fontSize: 12),
                             ),
                             Text(
-                              "End Time",
+                              "Heure de fin",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Color.fromRGBO(51, 51, 51, 0.6),
@@ -271,7 +273,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                         ),
                         Expanded(
                           child: Text(
-                              "Ramassage achevé à cette adresse ",
+                              "Ramassage effectué à cette adresse",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: Color.fromRGBO(14, 14, 14, 1),
@@ -283,7 +285,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              "100%",
+                              "100 %",
                               style: TextStyle(
                                   fontWeight: FontWeight.w500, fontSize: 14),
                             ),
@@ -303,7 +305,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                         Container(
                           alignment: Alignment.centerLeft,
                           child: const Text(
-                            "Adresse de Dépots",
+                            "Adresse du dépôt",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: Color.fromRGBO(1, 113, 75, 1),
@@ -324,7 +326,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                         Container(
                           alignment: Alignment.centerLeft,
                           child: const Text(
-                            "Adresses des Poubelles",
+                            "Adresses des poubelles",
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: Color.fromRGBO(1, 113, 75, 1),
@@ -337,7 +339,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                             alignment: Alignment.centerLeft,
                             margin: const EdgeInsets.only(top: 8),
                             child: Text(
-                              " ${index+1}- ${widget.adressePoubelle[index]}",
+                              "${index+1}- ${widget.adressePoubelle[index]}",
                               style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Color.fromRGBO(14, 14, 14, 1),
@@ -363,7 +365,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                                   icon: BitmapDescriptor.defaultMarkerWithHue(
                                       BitmapDescriptor.hueBlue),
                                   infoWindow: InfoWindow(
-                                    title: 'Depot',
+                                    title: 'Dépôt',
                                     snippet: widget.adresseDepot,
                                   ),
                                 ),

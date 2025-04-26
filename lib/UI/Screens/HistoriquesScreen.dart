@@ -1,14 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../Widgets/CostumNavBar.dart';
 import '../Widgets/TaskCard.dart';
 
 class HistoriquesScreen extends StatefulWidget {
-
-  const HistoriquesScreen({Key? key, required this.routeData,required this.userData}) : super(key: key);
+  const HistoriquesScreen(
+      {Key? key, required this.routeData, required this.userData})
+      : super(key: key);
   final Map<String, dynamic> routeData;
   final Map<String, dynamic> userData;
-
 
   @override
   State<HistoriquesScreen> createState() => _HistoriquesScreenState();
@@ -21,8 +24,9 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
   @override
   void initState() {
     super.initState();
+    fetchHistorique();
     // TODO: implement initState
-    listOfMap = [
+    /* listOfMap = [
       {
         "idDistributeur": "001",
         "adresse": "Rue Didouche Mourad, Alger Centre",
@@ -51,9 +55,70 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
         "poubelleAdresses": ["Rue Didouche Mourad, Alger Centre", "Avenue Khelifa Boukhalfa, Alger Centre", "Rue des Frères Amrani, El Harrach", "Rue de Tripoli, Hussein Dey"]
       }
     ];
-
+*/
     // Mettre à jour le statut de chargement
     isloading = false;
+  }
+
+  Future<void> fetchHistorique() async {
+    try {
+      final chauffeurId = widget.userData['id']; // id du chauffeur
+      final response = await http.get(
+        Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/historiqueChauffeur?id=$chauffeurId'),
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+
+        listOfMap = [];
+
+        for (var task in data) {
+          // Itinéraire contient plusieurs points
+          List<dynamic> itineraire = jsonDecode(task['itineraire']);
+          List<String> poubelleAdresses = [];
+
+          for (var point in itineraire) {
+            try {
+              List<Placemark> placemarks = await placemarkFromCoordinates(
+                point['latitude'],
+                point['longitude'],
+              );
+              if (placemarks.isNotEmpty) {
+                Placemark placemark = placemarks.first;
+                String adresse =
+                    "${placemark.street}, ${placemark.locality}, ${placemark.country}";
+                poubelleAdresses.add(adresse);
+              }
+            } catch (e) {
+              print('Erreur de géocodage: $e');
+            }
+          }
+
+          listOfMap.add({
+            "idDistributeur": task['id'].toString(),
+            "adresse":
+                "${poubelleAdresses.isNotEmpty ? poubelleAdresses.first : ''}", // Premier point = adresse départ
+            "dateDebut": task['date_debut'],
+            "dateFin": task['date_fin'],
+            "title": task['titre'],
+            "etat": task['etat'],
+            "poubelleAdresses":
+                poubelleAdresses.toList(), // Les autres = poubelles
+          });
+        }
+
+        setState(() {
+          isloading = false;
+        });
+      } else {
+        throw Exception('Erreur lors de la récupération de l’historique.');
+      }
+    } catch (e) {
+      print('Erreur: $e');
+      setState(() {
+        isloading = false;
+      });
+    }
   }
 
   @override
@@ -61,22 +126,24 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
     List<Widget> _listOfTasksWidgets = List.generate(
         listOfMap.length,
         (index) => TaskCard(
-            adresseDepot: "${listOfMap[index]["adresse"]}",
-            adressePoubelle:listOfMap[index]["poubelleAdresses"] ,
-            date: listOfMap[index]["dateDebut"].substring(0, 10),
-            title: listOfMap[index]["title"],
-            startTime: listOfMap[index]["dateDebut"].substring(11, 16) + " PM",
-            endTime: listOfMap[index]["dateFin"].substring(11, 16) + " PM" ,
-            etat: listOfMap[index]["etat"],
-            isTypee: true,
-        routeData: widget.routeData,
-        userData: widget.userData,));
+              adresseDepot: "${listOfMap[index]["adresse"]}",
+              adressePoubelle: listOfMap[index]["poubelleAdresses"],
+              date: listOfMap[index]["dateDebut"].substring(0, 10),
+              title: listOfMap[index]["title"],
+              startTime:
+                  listOfMap[index]["dateDebut"].substring(11, 16) + " PM",
+              endTime: listOfMap[index]["dateFin"].substring(11, 16) + " PM",
+              etat: listOfMap[index]["etat"],
+              isTypee: true,
+              routeData: widget.routeData,
+              userData: widget.userData,
+            ));
 
     return Scaffold(
       body: isloading
           ? const Center(
               child: CircularProgressIndicator(
-              color: Color.fromARGB(255, 77, 166, 36),
+              color: Color.fromRGBO(1, 113, 75, 1)
             ))
           : SingleChildScrollView(
               child: Column(
@@ -96,7 +163,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                           height: 5,
                         ),
                         const Text(
-                          "Historiques",
+                          "Historique",
                           style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: Colors.black,
@@ -136,7 +203,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                                 size: 20,
                                 color: Color.fromRGBO(51, 51, 51, 0.74),
                               ),
-                              hintText: 'Search',
+                              hintText: 'Rechercher',
                               hintStyle: const TextStyle(
                                 color: Color.fromRGBO(51, 51, 51, 0.74),
                               ),
@@ -152,7 +219,7 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                           icon: const Icon(
                             Icons.filter_list_rounded,
                             size: 30,
-                            color: Color.fromARGB(255, 77, 166, 36),
+                            color: Color.fromRGBO(1, 113, 75, 1),
                           ),
                         ),
                       ],
@@ -162,7 +229,11 @@ class _HistoriquesScreenState extends State<HistoriquesScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: CostumNavBar(index: 2, routeData: widget.routeData,userData: widget.userData,),
+      bottomNavigationBar: CostumNavBar(
+        index: 2,
+        routeData: widget.routeData,
+        userData: widget.userData,
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../Widgets/CostumNavBar.dart';
 import '../Widgets/AdresseCard.dart';
 import 'ReportProblemScreen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({
@@ -39,7 +43,7 @@ class _TaskScreenState extends State<TaskScreen> {
   List<LatLng> polylineCoordinates = [];
   Set<Polyline> polylines = {};
   bool isLoading = true;
-  String googleAPiKey = "";
+  String googleAPiKey = dotenv.env['API_KEY'] ?? '';
 
   @override
   void initState() {
@@ -121,6 +125,50 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
+
+  Future<void> insertHistory() async {
+    final DateTime startDateTime = DateTime.parse("${widget.date}T${widget.startTime}:00");
+    final DateTime endDateTime = DateTime.now();
+
+    final url = Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/historiqueChauffeur');
+
+    // Construire itinéraire proprement depuis poubelleCoordinates
+    List<Map<String, double>> itineraryList = poubelleCoordinates.map((coord) => {
+      "latitude": coord.latitude,
+      "longitude": coord.longitude,
+    }).toList();
+
+    final body = {
+      "chauffeur_id": widget.userData['id'],
+      "adresse_depart_longitude": depotCoordinate?.longitude,
+      "adresse_depart_latitude": depotCoordinate?.latitude,
+      "date_debut": startDateTime.toIso8601String(),
+      "date_fin": endDateTime.toIso8601String(),
+      "titre": "Ramassage poubelle",
+      "etat": "Done",
+      "itineraire": jsonEncode(itineraryList),
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 201) {
+        print('Insertion réussie');
+      } else {
+        print('Erreur d\'insertion: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Erreur: $e');
+    }
+  }
+
+
+
+
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -146,7 +194,7 @@ class _TaskScreenState extends State<TaskScreen> {
                       height: 5,
                     ),
                     const Text(
-                      "Task details",
+                      "Détails de la mission",
                       style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
@@ -192,7 +240,7 @@ class _TaskScreenState extends State<TaskScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Vehicule ID",
+                                  "ID du véhicule",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: Color.fromRGBO(51, 51, 51, 0.6),
@@ -206,14 +254,14 @@ class _TaskScreenState extends State<TaskScreen> {
                                       fontSize: 12),
                                 ),
                                 Text(
-                                  "Start Time",
+                                  "Heure de début",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: Color.fromRGBO(51, 51, 51, 0.6),
                                       fontSize: 12),
                                 ),
                                 Text(
-                                  "Estimated End Time",
+                                  "Heure de fin estimée",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: Color.fromRGBO(51, 51, 51, 0.6),
@@ -270,7 +318,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             ),
                             Expanded(
                               child: Text(
-                                "Votre mission d'aujourd'hui c'est le ramassage dans ces adresses ",
+                                "Votre mission aujourd'hui est de collecter les déchets aux adresses suivantes",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: Color.fromRGBO(14, 14, 14, 1),
@@ -317,7 +365,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                   icon: BitmapDescriptor.defaultMarkerWithHue(
                                       BitmapDescriptor.hueRed),
                                   infoWindow: InfoWindow(
-                                    title: 'Depot',
+                                    title: 'Dépôt',
                                     snippet: widget.adresseDepot,
                                   ),
                                 ),
@@ -355,14 +403,15 @@ class _TaskScreenState extends State<TaskScreen> {
                                 borderRadius: BorderRadius.circular(25.0),
                               ),
                               child: const Text(
-                                'Marquez comme Terminé',
+                                "Marquer comme terminé",
                                 style: TextStyle(
                                     letterSpacing: 0.8,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
                                     fontSize: 16),
                               ),
-                              onPressed: () {
+                              onPressed: () async {
+                                await insertHistory();
                                 Navigator.pop(context);
                               },
                             ),
@@ -419,7 +468,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     Container(
                       alignment: Alignment.centerLeft,
                       child: const Text(
-                        "  Adresse de Dépots",
+                        "Adresse du dépôt",
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             color: Colors.black,
@@ -428,9 +477,9 @@ class _TaskScreenState extends State<TaskScreen> {
                     ),
                     AdresseCard(
                       adresse: widget.adresseDepot,
-                      nomRegion: 'Depot Region',
-                      tauxRemplissage: 'N/A',
-                      etat: 'N/A',
+                      nomRegion: "Dépôt du région ",
+                      tauxRemplissage: '',
+                      etat: '',
                       isTypee: false,
                     ),
                     const SizedBox(
@@ -439,7 +488,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     Container(
                       alignment: Alignment.centerLeft,
                       child: const Text(
-                        "  Adresses des Poubelles",
+                        "Adresses des poubelles",
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             color: Colors.black,
@@ -449,7 +498,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     ...widget.adressePoubelle.map((adresse) {
                       return AdresseCard(
                         adresse: adresse,
-                        nomRegion: 'Poubelle Region',
+                        nomRegion: "Poubelle du région ",
                         tauxRemplissage: 'N/A',
                         etat: 'N/A',
                         isTypee: false,

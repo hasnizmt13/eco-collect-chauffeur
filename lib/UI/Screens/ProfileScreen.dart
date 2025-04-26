@@ -43,7 +43,7 @@ class _ProfileScreen extends State<ProfileScreen> {
   }
   Future<void> _logout() async {
     final response =
-    await http.get(Uri.parse('http://172.20.10.4:5000/api/auth/logout'));
+    await http.get(Uri.parse('https://refactored-zebra-rxpxgr695vjcwjj7-5000.app.github.dev/api/auth/logout'));
 
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
@@ -85,7 +85,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                   width: 100,
                 ),
                 const Text(
-                  "My Profile",
+                  "Mon Profil",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -135,7 +135,7 @@ class _ProfileScreen extends State<ProfileScreen> {
             TextButton(
               onPressed: _openImagePicker,
               child: const Text(
-                "Upload Images",
+                "Téléverser une image",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -177,10 +177,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                           },
                           validator: (input) {
                             if (input!.isEmpty) {
-                              return 'Please enter your email';
+                              return 'Veuillez saisir votre email';
                             }
                             if (!input.contains('@')) {
-                              return 'Please enter a valid email';
+                              return 'Veuillez saisir un email valide';
                             }
                             return null;
                           },
@@ -191,13 +191,13 @@ class _ProfileScreen extends State<ProfileScreen> {
                           obscureText: _obscureText,
                           validator: (input) {
                             if (input!.length < 8) {
-                              return 'Password must be at least 8 characters';
+                              return 'Le mot de passe doit contenir au moins 8 caractères';
                             }
                             return null;
                           },
                           onSaved: (input) => _password = input!,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: 'Mot de passe',
                             labelStyle: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -224,13 +224,13 @@ class _ProfileScreen extends State<ProfileScreen> {
                           obscureText: _obscureText2,
                           validator: (input) {
                             if (input!.isEmpty) {
-                              return 'Please confirm your password';
+                              return 'Veuillez confirmer votre mot de passe';
                             }
                             return null;
                           },
                           onSaved: (value) => _confirmPassword = value!,
                           decoration: InputDecoration(
-                            labelText: 'Confirm Password',
+                            labelText: 'Confirmez le mot de passe',
                             labelStyle: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -268,7 +268,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(23.0),
                           ),
                           child: const Text(
-                            "Save Changes",
+                            "Enregistrer les modifications",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,

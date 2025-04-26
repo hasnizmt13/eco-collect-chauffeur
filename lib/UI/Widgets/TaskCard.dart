@@ -44,7 +44,7 @@ class TaskCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("$adresseDepot",style: const TextStyle(fontWeight: FontWeight.w600,fontSize: 12),),
+              Flexible(child: Text("$adresseDepot",style: const TextStyle(fontWeight: FontWeight.w600,fontSize: 12), overflow: TextOverflow.ellipsis,)),
               Text("$date",style: const TextStyle(fontWeight: FontWeight.w500,fontSize: 12),)
             ],
           ),
