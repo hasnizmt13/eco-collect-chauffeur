@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:mobile_app_1/UI/Screens/HistoriquesScreen.dart';
 import '../Widgets/CostumNavBar.dart';
 import '../Widgets/AdresseCard.dart';
 import 'ReportProblemScreen.dart';
@@ -168,6 +169,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
       if (response.statusCode == 201) {
         print('Insertion réussie');
+
       } else {
         print('Erreur d\'insertion: ${response.statusCode} - ${response.body}');
       }
@@ -420,9 +422,18 @@ class _TaskScreenState extends State<TaskScreen> {
                                     color: Colors.white,
                                     fontSize: 16),
                               ),
-                              onPressed: () async {
+                              onPressed: () async  {
                                 await insertHistory();
-                                Navigator.pop(context);
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => HistoriquesScreen(
+                                        routeData: widget.routeData,
+                                        userData: widget.userData,
+                                      ),
+                                    ),
+                                  );
+                                });
                               },
                             ),
                           ),

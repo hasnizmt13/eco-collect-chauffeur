@@ -144,13 +144,23 @@ class _MapScreenState extends State<MapScreen> {
 
 
     String origin = formatAddress(widget.adresseDepot);
+    print('Origin: $origin');
     String destination = formatAddress(widget.adresseDepot);
+    print('Destination: $destination');
 
     // Create a list of waypoints excluding the last address
-    List<String> waypointsList = List.from(widget.adressePoubelle)
-      ..removeLast();
+    List<String> waypointsList = List.from(widget.adressePoubelle);
+ //   String waypoints = 'optimize:true|' + waypointsList.map((address) => formatAddress(address)).join('|');
     String waypoints =
-        waypointsList.map((address) => formatAddress(address)).join('|');
+        waypointsList
+            .map((address) => address.trim().replaceAll(RegExp(r',\s*,+'), '')) // supprime les ", ,"
+            .where((a) => a.isNotEmpty) // évite les adresses vides
+            .map(formatAddress)
+            .join('|');
+
+    print('widget.adressePoubelle: ${widget.adressePoubelle}');
+
+    print('Waypoints: $waypoints');
 
     String googleMapsUrl =
         'https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination&waypoints=$waypoints&travelmode=driving';

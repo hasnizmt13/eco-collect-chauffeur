@@ -343,7 +343,7 @@ class _HistoriqueDetailsState extends State<HistoriqueDetails> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: Color.fromRGBO(14, 14, 14, 1),
-                                  fontSize: 15),
+                                  fontSize: 14),
                             ),
                           ),
                         ),
